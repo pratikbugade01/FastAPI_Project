@@ -2,12 +2,21 @@
 
 A full-stack machine learning application that predicts insurance premium categories (Low, Medium, High) based on user demographics, lifestyle factors, and financial information. Built with FastAPI backend and Streamlit frontend.
 
+## 🌐 Live Demo
+
+- **Frontend (Streamlit)**: [https://insurance-premium-prediction-website.streamlit.app/](https://insurance-premium-prediction-website.streamlit.app/)
+- **Backend API (AWS EC2)**: `http://13.62.18.68:8000`
+- **API Documentation**: `http://13.62.18.68:8000/docs` (FastAPI Swagger UI)
+
 ## 📋 Table of Contents
+- [Live Demo](#live-demo)
 - [Features](#features)
 - [Tech Stack](#tech-stack)
+- [Architecture](#architecture)
 - [Project Structure](#project-structure)
 - [Installation](#installation)
 - [Usage](#usage)
+- [Deployment](#deployment)
 - [API Endpoints](#api-endpoints)
 - [Model Information](#model-information)
 - [Screenshots](#screenshots)
@@ -41,6 +50,41 @@ A full-stack machine learning application that predicts insurance premium catego
 - **pandas**: Data manipulation and preprocessing
 - **numpy**: Numerical computing
 
+### Deployment
+- **AWS EC2**: Backend API hosting (Ubuntu server)
+- **Streamlit Community Cloud**: Frontend deployment
+- **Docker**: Containerization (optional)
+
+## 🏗️ Architecture
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                    End User                             │
+└────────────────────┬────────────────────────────────────┘
+                     │
+                     ▼
+┌─────────────────────────────────────────────────────────┐
+│          Streamlit Frontend                             │
+│    (Streamlit Community Cloud)                          │
+│    https://insurance-premium-prediction-website         │
+│           .streamlit.app/                               │
+└────────────────────┬────────────────────────────────────┘
+                     │
+                     │ HTTP POST /predict
+                     │
+                     ▼
+┌─────────────────────────────────────────────────────────┐
+│          FastAPI Backend                                │
+│          (AWS EC2 Instance)                             │
+│          http://13.62.18.68:8000                        │
+│                                                          │
+│  ┌──────────────┐      ┌──────────────┐                │
+│  │  Pydantic    │      │   ML Model   │                │
+│  │  Validation  │─────▶│  (Pickle)    │                │
+│  └──────────────┘      └──────────────┘                │
+└─────────────────────────────────────────────────────────┘
+```
+
 ## 📁 Project Structure
 
 ```
@@ -49,7 +93,9 @@ insurance_premium_prediction/
 ├── app.py                      # FastAPI application entry point
 ├── frontend.py                 # Streamlit frontend application
 ├── requirements.txt            # Python dependencies
+├── Dockerfile                  # Docker configuration for containerization
 ├── .gitignore                  # Git ignore file
+├── README.md                   # Project documentation
 │
 ├── config/
 │   └── city_tier.py           # City tier configuration mapping
@@ -118,6 +164,117 @@ myenv\Scripts\activate  # Windows
 streamlit run frontend.py
 ```
 The frontend will open automatically in your browser at `http://localhost:8501`
+
+## 🚀 Deployment
+
+This application is deployed and accessible online:
+
+### Frontend Deployment (Streamlit Community Cloud)
+
+The Streamlit frontend is deployed on **Streamlit Community Cloud** and accessible at:
+**[https://insurance-premium-prediction-website.streamlit.app/](https://insurance-premium-prediction-website.streamlit.app/)**
+
+**Deployment Steps:**
+1. Push code to GitHub repository
+2. Sign in to [share.streamlit.io](https://share.streamlit.io) with GitHub
+3. Select repository and branch
+4. Set main file as `frontend.py`
+5. Deploy automatically
+
+**Requirements for Streamlit Cloud:**
+- `requirements.txt` with all dependencies
+- Public GitHub repository
+- Python 3.8+ compatible code
+
+### Backend Deployment (AWS EC2)
+
+The FastAPI backend is hosted on **AWS EC2** (Ubuntu instance) and accessible at:
+**`http://13.62.18.68:8000`**
+
+**Deployment Steps:**
+
+1. **Launch EC2 Instance**
+   ```bash
+   # Amazon Linux 2 or Ubuntu Server
+   # Instance type: t2.micro (free tier eligible)
+   # Security Group: Allow HTTP (80), Custom TCP (8000)
+   ```
+
+2. **SSH into EC2 Instance**
+   ```bash
+   ssh -i your-key.pem ubuntu@13.62.18.68
+   ```
+
+3. **Install Dependencies**
+   ```bash
+   sudo apt update
+   sudo apt install python3-pip python3-venv -y
+   ```
+
+4. **Clone Repository**
+   ```bash
+   git clone https://github.com/pratikbugade01/FastAPI_Project.git
+   cd FastAPI_Project
+   ```
+
+5. **Setup Virtual Environment**
+   ```bash
+   python3 -m venv venv
+   source venv/bin/activate
+   pip install -r requirements.txt
+   ```
+
+6. **Run FastAPI Server**
+   ```bash
+   # For testing
+   uvicorn app:app --host 0.0.0.0 --port 8000
+   
+   # For production (using screen or tmux)
+   screen -S fastapi
+   uvicorn app:app --host 0.0.0.0 --port 8000
+   # Detach: Ctrl+A then D
+   ```
+
+7. **Optional: Setup as Systemd Service**
+   ```bash
+   sudo nano /etc/systemd/system/fastapi.service
+   ```
+   
+   Add:
+   ```ini
+   [Unit]
+   Description=FastAPI Insurance Prediction API
+   After=network.target
+
+   [Service]
+   User=ubuntu
+   WorkingDirectory=/home/ubuntu/FastAPI_Project
+   Environment="PATH=/home/ubuntu/FastAPI_Project/venv/bin"
+   ExecStart=/home/ubuntu/FastAPI_Project/venv/bin/uvicorn app:app --host 0.0.0.0 --port 8000
+
+   [Install]
+   WantedBy=multi-user.target
+   ```
+   
+   Enable and start:
+   ```bash
+   sudo systemctl daemon-reload
+   sudo systemctl enable fastapi
+   sudo systemctl start fastapi
+   sudo systemctl status fastapi
+   ```
+
+### Docker Deployment (Optional)
+
+Build and run using Docker:
+
+```bash
+# Build image
+docker build -t insurance-prediction-api .
+
+# Run container
+docker run -d -p 8000:8000 insurance-prediction-api
+```
 
 ### Using the Application
 
@@ -221,10 +378,31 @@ The prediction model considers the following features:
 - `unemployed`
 - `private_job`
 
+### City Tier Classification
+- **Tier 1**: Mumbai, Delhi, Bangalore, Chennai, Kolkata, Hyderabad, Pune
+- **Tier 2**: Jaipur, Chandigarh, Indore, Lucknow, Patna, and 40+ other cities
+- **Tier 3**: All other cities
+
 ## 📊 Screenshots
 
-<!-- Add screenshots here -->
-*Coming soon: Add screenshots of the Streamlit interface and API documentation*
+### Live Application
+Visit the live app: [https://insurance-premium-prediction-website.streamlit.app/](https://insurance-premium-prediction-website.streamlit.app/)
+
+### Features in Action:
+- Interactive input form with real-time validation
+- Color-coded premium category predictions (🟢 Low, 🟡 Medium, 🔴 High)
+- Confidence scores with visual progress bars
+- Probability distribution across all categories
+- Responsive bar charts for visual analysis
+
+## 🔒 Security Note
+
+**Important**: The current deployment uses HTTP. For production use, consider:
+- Setting up HTTPS with SSL/TLS certificates (Let's Encrypt)
+- Using AWS Application Load Balancer with HTTPS
+- Implementing API authentication (API keys, JWT tokens)
+- Setting up CORS policies appropriately
+- Using environment variables for sensitive configuration
 
 ## 🤝 Contributing
 
@@ -250,7 +428,18 @@ This project is open source and available under the [MIT License](LICENSE).
 - FastAPI documentation and community
 - Streamlit team for the amazing framework
 - scikit-learn contributors
+- AWS for cloud infrastructure
+- Streamlit Community Cloud for free hosting
+
+## 📫 Contact
+
+For questions, suggestions, or issues, please:
+- Open an issue on GitHub
+- Contact: [GitHub @pratikbugade01](https://github.com/pratikbugade01)
 
 ---
 
-**Note**: Make sure both the FastAPI server and Streamlit app are running simultaneously for the application to work properly.
+**Note**: 
+- The live application is available at [https://insurance-premium-prediction-website.streamlit.app/](https://insurance-premium-prediction-website.streamlit.app/)
+- Backend API hosted on AWS EC2: `http://13.62.18.68:8000`
+- For local development, make sure both the FastAPI server and Streamlit app are running simultaneously
