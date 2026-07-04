@@ -5,8 +5,8 @@ A full-stack machine learning application that predicts insurance premium catego
 ## 🌐 Live Demo
 
 - **Frontend (Streamlit)**: [https://insurance-premium-prediction-website.streamlit.app/](https://insurance-premium-prediction-website.streamlit.app/)
-- **Backend API (AWS EC2)**: `http://13.62.18.68:8000`
-- **API Documentation**: `http://13.62.18.68:8000/docs` (FastAPI Swagger UI)
+- **Backend API (AWS EC2)**: `http://13.233.149.202:8000`
+- **API Documentation**: `http://13.233.149.202:8000/docs` (FastAPI Swagger UI)
 
 ## 📋 Table of Contents
 - [Live Demo](#live-demo)
